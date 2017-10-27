@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Reaction Gifs</title>
+</head>
+
+<body>
+  <div class="buttons">
+  <button data-person="Happy">Happy</button>
+  <button data-person="LOL">
+    LOL
+  </button>
+  <button data-person="Crying">
+    Crying
+  </button>
+  <button data-person="Smising">
+    Smise
+  </button>
+  <button data-person="Eye Roll">
+    Eye Roll
+  </button>
+  </div>
+  <br>
+   <form id="form">
+      <label for="feeling-input">Add a Cartoon!</label>
+      <input type="text" id="feeling-input"><br>
+
+      <!-- Button triggers new movie to be added -->
+      <input id="add-feeling" type="submit" value="Add">
+    </form>
+    <br>
+
+  <div id="gifs-here">
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    // Event listener for all button elements
+    $("button").on("click", function() {
+      // In this case, the "this" keyword refers to the button that was clicked
+      var person = $(this).attr("data-person");
+
+      // Constructing a URL to search Giphy for the name of the person who said the quote
+      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+        person + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+      // Performing our AJAX GET request
+      $.ajax({
+          url: queryURL,
+          method: "GET"
+        })
+  
+        .done(function(response) {
+      
+          var results = response.data;
+          console.log(results);
+
+        
+          for (var i = 0; i < results.length; i++) {
+
+            if (results[i].rating !== "r" && results[i].rating !== "pg-13") {
+              var gifDiv = $("<div class='item'>");
+              var rating = results[i].rating;
+              var p = $("<p>").text("Rating: " + rating);
+              var gifImage = $("<img class='gif'>");
+
+              gifImage.attr("src", results[i].images.fixed_height_still.url);
+              gifImage.attr("data-state", "still");
+              gifImage.attr("data-still", results[i].images.fixed_height_still.url);
+              gifImage.attr("data-animate", results[i].images.fixed_height.url);
+               gifDiv.append(gifImage);
+               gifDiv.append("<br>" + "Rating: " + rating + "<br>");
+
+
+               $("#gifs-here").prepend(gifDiv);
+          }
+          }
+        });
+    });
+
+          $(".gifs-here").on("click",".gif", function() {
+            
+            var state = $(this).attr("data-state")
+            if (state === "still") {
+
+              $(this).attr("src", $(this).attr("data-animate"));
+              $(this).attr("data-state", "animate");
+            } else {
+              $(this).attr("src", $(this).attr("data-still"));
+              $(this).attr("data-state", "still");
+            }
+          });
+
+      $("#add-feeling").on("click", function(event) {
+        event.preventDefault();
+        // This line grabs the input from the textbox
+        var feeling = $("#feeling-input").val().trim();
+        var button = $("<button>").text(feeling);
+        button.attr("data-person");
+
+        $(".buttons").append(button);
+
+          var gifDiv = $("<div class='item'>");
+          var gifImage = $("<img class='gif'>");
+
+            gifImage.attr("src", results[i].images.fixed_height_still.url);
+            gifImage.attr("data-state", "still");
+            gifImage.attr("data-still", results[i].images.fixed_height_still.url);
+            gifImage.attr("data-animate", results[i].images.fixed_height.url);
+             gifDiv.append(gifImage);
+
+          $("#gifs-here").prepend(gifDiv);
+
+      });
+
+
+
+             
+  </script>
+</body>
+
+</html>
