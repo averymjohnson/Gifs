@@ -3,117 +3,164 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Reaction Gifs</title>
+  <title>Feelings Gif Generator</title>
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="buttons">
-  <button data-person="Happy">Happy</button>
-  <button data-person="LOL">
-    LOL
-  </button>
-  <button data-person="Crying">
-    Crying
-  </button>
-  <button data-person="Smising">
-    Smise
-  </button>
-  <button data-person="Eye Roll">
-    Eye Roll
-  </button>
-  </div>
-  <br>
-   <form id="form">
-      <label for="feeling-input">Add a Cartoon!</label>
-      <input type="text" id="feeling-input"><br>
 
-      <!-- Button triggers new movie to be added -->
-      <input id="add-feeling" type="submit" value="Add">
+  <div class="container">
+    <h1>Gifs for Every Feeling!</h1>
+
+    <!-- Rendered Buttons will get Dumped Here  -->
+    <div id="buttons-here"></div>
+
+    <form id="feelings-form">
+      <label for="feelings-input">What are you feeling?</label>
+      <input type="text" id="feelings-input"><br>
+
+      <!-- Button triggers new feeling to be added -->
+      <input id="add-feeling" type="submit" value="Add My Feeling!">
     </form>
-    <br>
 
-  <div id="gifs-here">
-  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script type="text/javascript">
-    // Event listener for all button elements
-    $("button").on("click", function() {
-      // In this case, the "this" keyword refers to the button that was clicked
-      var person = $(this).attr("data-person");
+    <!-- gifs will Get Dumped Dere -->
+    <div id="gifs-here"></div>
 
-      // Constructing a URL to search Giphy for the name of the person who said the quote
-      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
-        person + "&api_key=dc6zaTOxFJmzC&limit=10";
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
 
-      // Performing our AJAX GET request
-      $.ajax({
-          url: queryURL,
-          method: "GET"
-        })
-  
-        .done(function(response) {
-      
+      var feeling = ["Happy", "Sad", "Mad", "Eye Roll", "Scoff"];
+
+
+      function renderButtons() {
+
+        $("#buttons-here").empty();
+
+        // Looping through the array
+        $.each(feeling, function(index, value) {
+
+          var a = $("<button>");
+          a.addClass("feelbtn");
+          a.attr("data-name", feeling[index]);
+          a.text(feeling[index]);
+
+          $("#buttons-here").append(a);
+        });
+      }
+
+      renderButtons();
+
+       $(".feelbtn").on("click", function(getTheGifs) {
+        // empty the div when a new button is clicked
+        $("#gifs-here").empty();
+
+        var getGifs = $(this).attr("data-name");
+
+        var queryURL = "https://api.giphy.com/v1/gifs/search?api_key=870e05608b1f4f57906edb3144c445bc&q=" + getGifs + "&limit=10&offset=0&rating=PG-13&lang=en";
+
+        $.ajax({
+            url: queryURL,
+            method: 'GET'
+        }).done(function (response) {
+
           var results = response.data;
           console.log(results);
 
-        
           for (var i = 0; i < results.length; i++) {
 
-            if (results[i].rating !== "r" && results[i].rating !== "pg-13") {
-              var gifDiv = $("<div class='item'>");
-              var rating = results[i].rating;
-              var p = $("<p>").text("Rating: " + rating);
-              var gifImage = $("<img class='gif'>");
+                
+            var animate = results[i].images.fixed_height.url;
 
-              gifImage.attr("src", results[i].images.fixed_height_still.url);
-              gifImage.attr("data-state", "still");
-              gifImage.attr("data-still", results[i].images.fixed_height_still.url);
-              gifImage.attr("data-animate", results[i].images.fixed_height.url);
-               gifDiv.append(gifImage);
-               gifDiv.append("<br>" + "Rating: " + rating + "<br>");
+               
+                var still = results[i].images.fixed_height_still.url;
+
+        
+
+                var gifImage = $("<img>");
+
+                gifImage.attr("src", still);
+                gifImage.attr("alt", "gif image");
+                gifImage.addClass("gif");
+                gifImage.attr("data-state", "still");
+                gifImage.attr("data-still", still);
+                gifImage.attr("data-animate", animate)
 
 
-               $("#gifs-here").prepend(gifDiv);
-          }
-          }
+                $("#gifs-here").append(gifImage);
+
+                var imgRating = results[i].rating;
+
+                var caption = $("<p>");
+                caption.text("Rating: " + imgRating);
+
+                // append rating 
+                $("#gifs-here").append(caption);
+
+        };
         });
-    });
+      });
+      
 
-          $(".gifs-here").on("click",".gif", function() {
-            
-            var state = $(this).attr("data-state")
-            if (state === "still") {
+      function gifMove() {
+        let $this = $(this),
+            currentState = $this.data('state');
+        stillState = $this.data('still');
+        animateState = $this.data('animate');
 
-              $(this).attr("src", $(this).attr("data-animate"));
-              $(this).attr("data-state", "animate");
-            } else {
-              $(this).attr("src", $(this).attr("data-still"));
-              $(this).attr("data-state", "still");
-            }
-          });
+        var state = $(this).attr("data-state");
+        var imageStill = $(this).attr("data-still");
+        var imageAnimate = $(this).attr("data-animate");
+
+        // if gif is static, make it move
+        if (state == "still") {
+            $(this).attr("data-state", "animate");
+            $(this).attr("src", imageAnimate)
+        }
+
+        // if gif is moving, make it stop
+        if (state == "animate") {
+            $(this).attr("data-state", "still");
+            $(this).attr("src", imageStill)
+
+        $(document).on("click",".gif", gifMove);
+        }
+    }
+
 
       $("#add-feeling").on("click", function(event) {
         event.preventDefault();
         // This line grabs the input from the textbox
-        var feeling = $("#feeling-input").val().trim();
-        var button = $("<button>").text(feeling);
-        button.attr("data-person");
+        var userFeel = $("#feelings-input").val().trim();
 
-        $(".buttons").append(button);
+        feeling.push(userFeel);
 
-          var gifDiv = $("<div class='item'>");
-          var gifImage = $("<img class='gif'>");
+        
+        renderButtons();
+        $("#feelings-input").val("");
 
-            gifImage.attr("src", results[i].images.fixed_height_still.url);
-            gifImage.attr("data-state", "still");
-            gifImage.attr("data-still", results[i].images.fixed_height_still.url);
-            gifImage.attr("data-animate", results[i].images.fixed_height.url);
-             gifDiv.append(gifImage);
+        });
 
-          $("#gifs-here").prepend(gifDiv);
 
-      });
+     
+
+
+
+
+  
+    
+
+    
+
+        
+         
 
 
 
